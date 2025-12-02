@@ -1,6 +1,7 @@
 // UserContext.tsx
 import React, { createContext, useContext, useState } from "react";
 import { useEffect } from "react";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 // Define the user shape
 interface User {
@@ -54,7 +55,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
             setIsLoading(true);
 
-            const response = await fetch(`http://127.0.0.1:8000/login/?email=${email}`)
+            const response = await fetch(`${API_BASE_URL}/login/?email=${email}`)
 
             if (!response.ok) {
                 console.error('Network response was not ok');

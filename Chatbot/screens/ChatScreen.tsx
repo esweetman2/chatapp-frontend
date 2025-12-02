@@ -14,6 +14,7 @@ import {
     Typography,
     CircularProgress
 } from '@mui/material';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 interface Message {
     agent_id: number;
@@ -63,8 +64,8 @@ function ChatScreen() {
     }, [selectedAgent]);
 
     useEffect(() => {
-        console.log("CurrentChat: ", currentChat)
-        console.log("Messages: ", chatMessages)
+        // console.log("CurrentChat: ", currentChat)
+        // console.log("Messages: ", chatMessages)
 
         setMessages(chatMessages);
         
@@ -81,9 +82,9 @@ function ChatScreen() {
             agent_id: selectedAgent ? selectedAgent.id : 0,
             title: input.trim().slice(0, 50) || "New Chat"
         }
-        console.log("Creating New Chat:", chat)
+        // console.log("Creating New Chat:", chat)
 
-        const res = await fetch(`http://127.0.0.1:8000/chats/`, {
+        const res = await fetch(`${API_BASE_URL}/chats/`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -93,7 +94,7 @@ function ChatScreen() {
         })
         if (!res.ok) {throw new Error("Failed to create new chat")};
         const data = await res.json();
-        console.log("New Chat Created:", data)
+        // console.log("New Chat Created:", data)
         return data;
     }
 
@@ -115,9 +116,9 @@ function ChatScreen() {
                 if (input.trim() !== '' && event.key === 'Enter') {
                     event.preventDefault();
                     if (messages.length === 0 && Object.keys(currentChat).length === 0) {
-                        console.log("Starting new chat flow");
+                        // console.log("Starting new chat flow");
                         const newestChat = await newChat(input.trim());
-                        console.log("Newest Chat from API:", newestChat);
+                        // console.log("Newest Chat from API:", newestChat);
                         await getChats(user?.id)
                         // await getMessages(curChat.current.id)
                         curChat.current = newestChat
@@ -141,7 +142,7 @@ function ChatScreen() {
         console.log("cur chat:", curChat)
         try {
             console.log("Current Chat: ", curChat.current)
-            const llmCallRes = await fetch("http://127.0.0.1:8000/messages/agent/", {
+            const llmCallRes = await fetch(`${API_BASE_URL}/messages/agent/`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -157,7 +158,7 @@ function ChatScreen() {
             })
             if (!llmCallRes.ok) throw new Error("Failed to get LLM response");
             const llmData = await llmCallRes.json();
-            console.log("LLM Response:", llmData);
+            // console.log("LLM Response:", llmData);
             setMessages(prevMessages => [...prevMessages, { message: llmData.message, role: llmData.role, agent_id: curChat.current.agent_id, chat_id: curChat.current.id }]);
         } catch (err) {
             console.error("Error posting chat message:", err);
@@ -173,14 +174,14 @@ function ChatScreen() {
             // console.log("Newest Chat from API:", newestChat);
             setCurrentChat(newestChat)
             curChat.current = newestChat
-            console.log("Inside handle chat: ", curChat.current)
+            // console.log("Inside handle chat: ", curChat.current)
             setMessages([...messages, { message: input.trim(), role: role, agent_id: selectedAgent.id, chat_id: curChat.current.id }]);
             
             setInput("")
             // API CALL TO STORE CHAT MESSAGE
-            const postMessageData = await postMessage(input.trim(), role)
+            await postMessage(input.trim(), role)
             await getChats(user?.id)
-            console.log("Post Chat Response:", postMessageData);
+            // console.log("Post Chat Response:", postMessageData);
             setLoading(false)
 
         } else {
@@ -190,8 +191,8 @@ function ChatScreen() {
             
             setInput("")
             // API CALL TO STORE CHAT MESSAGE
-            const postMessageData = await postMessage(input.trim(), role)
-            console.log("Post Chat Response:", postMessageData);
+            await postMessage(input.trim(), role)
+            // console.log("Post Chat Response:", postMessageData);
             setLoading(false)
         }
 

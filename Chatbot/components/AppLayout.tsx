@@ -23,6 +23,9 @@ import Select from '@mui/material/Select';
 // import { AuthContext } from '../src/Context/AuthContext';
 import { useUserContext } from '../src/Context/UserContext';
 import { useAgents } from '../src/Hooks/useAgents';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+// console.log(API_BASE_URL)
 
 const drawerWidth = 240;
 
@@ -66,10 +69,10 @@ const Layout = () => {
         // Fetch chats logic here
         try {
 
-            const res = await fetch(`http://127.0.0.1:8000/chats/?user_id=${userId}`)
+            const res = await fetch(`${API_BASE_URL}/chats/?user_id=${userId}`)
             if (!res.ok) throw new Error("Failed to fetch user chats");
             const data = await res.json();
-            console.log("Fetched Chats:", data)
+            // console.log("Fetched Chats:", data)
             setChats(data);
             setChatMessages(data[0]['messages']);
             setCurrentChat(data[0]);
@@ -85,7 +88,7 @@ const Layout = () => {
     }
 
     const handleNewChat = () => {
-        console.log('Starting new chat');
+        // console.log('Starting new chat');
 
         setChatMessages([]);
         // const newArr = [...mainChats, { title: "New Chat" } as Chat];

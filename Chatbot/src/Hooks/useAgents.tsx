@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 interface Agents {
     agent_name: string | null;
@@ -25,7 +25,7 @@ export function useAgents() {
         async function fetchAgents() {
             try {
                 setLoading(true);
-                const res = await fetch(`http://127.0.0.1:8000/agent/`);
+                const res = await fetch(`${API_BASE_URL}/agent/`);
                 if (!res.ok) throw new Error("Failed to fetch");
                 const data = await res.json();
                 if (!ignore) {
