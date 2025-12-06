@@ -55,7 +55,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
             setIsLoading(true);
 
-            const response = await fetch(`${API_BASE_URL}/login/?email=${email}`)
+            const response = await fetch(`${API_BASE_URL}/login?email=${email}`)
 
             if (!response.ok) {
                 console.error('Network response was not ok');
