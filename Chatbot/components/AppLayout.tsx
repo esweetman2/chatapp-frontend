@@ -56,7 +56,7 @@ const Layout = () => {
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [chatMessages, setChatMessages] = useState<Message[]>([]);
     const [currentChat, setCurrentChat] = useState<Chat>({} as Chat);
-    const [ selectedIndex, setSelectedIndex] = useState<any>()
+    const [selectedIndex, setSelectedIndex] = useState<any>()
     // const [newChat, setNewChat] = useState<boolean>(false);
 
 
@@ -120,7 +120,7 @@ const Layout = () => {
             }
         }
         chats()
-        
+
     }, [selectedAgent]);
 
 
@@ -141,11 +141,13 @@ const Layout = () => {
             {/* AppBar */}
             <AppBar
                 position="fixed"
-                sx={{ width: `calc(100% - ${drawerWidth}px)`, ml: `${drawerWidth}px` }}
+                sx={{ width: `calc(100% - ${drawerWidth}px)` }}
             >
-                <Toolbar>
+                <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
                     <Typography variant="h6" noWrap component="div">
                         {user ? `Welcome, ${user.display_name}` : 'No user logged in'}
+                    </Typography>
+                    <Typography variant="h6" noWrap component="div">
                         <Button onClick={logout} sx={{ color: "black" }} >Log Out</Button>
                     </Typography>
 
@@ -201,13 +203,13 @@ const Layout = () => {
                                         selected={selectedIndex === conversation.id}
                                         sx={{
                                             '&.Mui-selected': {
-                                              backgroundColor: 'primary.main', // Example: change background color
-                                              color: 'white', // Example: change text color
-                                              '&:hover': {
-                                                backgroundColor: 'primary.dark', // Example: change hover background for selected state
-                                              },
+                                                backgroundColor: 'primary.main', // Example: change background color
+                                                color: 'white', // Example: change text color
+                                                '&:hover': {
+                                                    backgroundColor: 'primary.dark', // Example: change hover background for selected state
+                                                },
                                             },
-                                          }}
+                                        }}
                                     >
                                         <ListItemText
                                             sx={{ overflow: 'hidden', maxWidth: '200px', textOverflow: 'ellipsis' }}

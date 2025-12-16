@@ -31,7 +31,11 @@ export function useAgents() {
                 if (!ignore) {
                     setAgents(data)
                     // console.log("Fetched Agents:", data[0]);
-                    setCurrentAgent(data[0])
+                    if(data.length>0) {
+                        setCurrentAgent(data[0])
+                    } else {
+                        setCurrentAgent(null)
+                    }
                 }
             } catch (err) {
                 if (!ignore) setError(err);

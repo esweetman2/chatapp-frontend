@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState } from "react";
 import { useEffect } from "react";
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+// console.log("API_BASE_URL in UserContext:", API_BASE_URL);
 
 // Define the user shape
 interface User {

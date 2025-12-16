@@ -2,6 +2,8 @@ import { useState, useRef, useEffect } from 'react';
 import Box from '@mui/material/Box';
 import { useOutletContext } from 'react-router';
 import { useUserContext } from '../src/Context/UserContext';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 // import Layout from '../components/Layout'
 // import SideBar from '../components/SideBar'
@@ -9,7 +11,7 @@ import SendIcon from '@mui/icons-material/Send';
 import '../src/App.css'
 import {
     IconButton,
-    Paper,
+    // Paper,
     TextField,
     Typography,
     CircularProgress
@@ -68,7 +70,7 @@ function ChatScreen() {
         // console.log("Messages: ", chatMessages)
 
         setMessages(chatMessages);
-        
+
     }, [currentChat]);
 
 
@@ -76,7 +78,7 @@ function ChatScreen() {
         setMessages(chatMessages);
     }, [selectedAgent]);
 
-    const newChat = async(input: string) => {
+    const newChat = async (input: string) => {
         const chat = {
             user_id: user?.id,
             agent_id: selectedAgent ? selectedAgent.id : 0,
@@ -92,7 +94,7 @@ function ChatScreen() {
             },
             body: JSON.stringify(chat),
         })
-        if (!res.ok) {throw new Error("Failed to create new chat")};
+        if (!res.ok) { throw new Error("Failed to create new chat") };
         const data = await res.json();
         // console.log("New Chat Created:", data)
         return data;
@@ -105,7 +107,7 @@ function ChatScreen() {
     //     const data = await res.json();
     //     console.log("New Chat Created:", data)
     //     setMessages(data["messages"])
-        
+
     // }
 
 
@@ -123,8 +125,8 @@ function ChatScreen() {
                         // await getMessages(curChat.current.id)
                         curChat.current = newestChat
                         await setCurrentChat(newestChat)
-                        await handleChat(selectedAgent.id, input.trim(), "user");
-            
+                        // await handleChat(selectedAgent.id, input.trim(), "user");
+
                     } else {
                         await handleChat(selectedAgent.id, input.trim(), "user");
                     }
@@ -162,7 +164,7 @@ function ChatScreen() {
             setMessages(prevMessages => [...prevMessages, { message: llmData.message, role: llmData.role, agent_id: curChat.current.agent_id, chat_id: curChat.current.id }]);
         } catch (err) {
             console.error("Error posting chat message:", err);
-        } 
+        }
     }
 
     const handleChat = async (selectedAgent: any, input: string, role: string) => {
@@ -176,7 +178,7 @@ function ChatScreen() {
             curChat.current = newestChat
             // console.log("Inside handle chat: ", curChat.current)
             setMessages([...messages, { message: input.trim(), role: role, agent_id: selectedAgent.id, chat_id: curChat.current.id }]);
-            
+
             setInput("")
             // API CALL TO STORE CHAT MESSAGE
             await postMessage(input.trim(), role)
@@ -188,7 +190,7 @@ function ChatScreen() {
 
             setLoading(true);
             setMessages([...messages, { message: input.trim(), role: role, agent_id: selectedAgent.id, chat_id: curChat.current.id }]);
-            
+
             setInput("")
             // API CALL TO STORE CHAT MESSAGE
             await postMessage(input.trim(), role)
@@ -203,10 +205,10 @@ function ChatScreen() {
 
     return (
         // <Box sx={{ flexGrow: 1, p: 3, boxShadow: 3, borderRadius: 3, overflowY: 'hidden', height: '100vh', backgroundColor: "gray" }}>
-        <Box sx={{ width: '100%' }}>
+        <Box sx={{ width: '100%', borderRadius: 3, boxShadow: 4 }}>
             {/* <SideBar conversations={conversations} /> */}
 
-            <Box component="main" sx={{ flexGrow: 1, p: 3, boxShadow: 0, borderRadius: 3, overflowY: 'hidden' }}>
+            <Box component="main" sx={{ flexGrow: 1, p: 3, borderRadius: 3, overflowY: 'hidden' }}>
                 <Box sx={{
                     display: 'flex',
                     flexDirection: 'column',
@@ -219,19 +221,83 @@ function ChatScreen() {
                 }}
                     ref={scrollRef}
                 >
-                    {selectedAgent ? selectedAgent.agent_name : "Start a conversation"!}
+                    {/* {selectedAgent ? selectedAgent.agent_name : "Start a conversation"!} */}
                     {messages.map((msg, index) => (
-                        <Paper
+                        <Box
                             key={index}
                             sx={{
                                 p: 1.5,
                                 maxWidth: '75%',
                                 alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
-                                bgcolor: msg.role === 'user' ? 'lightblue' : '',
+                                bgcolor: msg.role === 'user' ? 'lightgray' : '',
+                                borderRadius: 2,
                             }}
                         >
-                            <Typography variant="body1" sx={{ whiteSpace: 'pre-line' }}>{msg.message}</Typography>
-                        </Paper>
+                            <ReactMarkdown
+                                remarkPlugins={[remarkGfm]}
+                                components={{
+                                    h1: ({ node, ...props }) => (
+                                        <Typography variant="h5" fontWeight="bold" gutterBottom {...props} />
+                                    ),
+                                    h2: ({ node, ...props }) => (
+                                        <Typography variant="h6" fontWeight="bold" gutterBottom {...props} />
+                                    ),
+                                    p: ({ node, ...props }) => (
+                                        <Typography variant="body1" sx={{ mb: 1 }} {...props} />
+                                    ),
+                                    strong: ({ node, ...props }) => (
+                                        <Typography component="span" fontWeight="bold" {...props} />
+                                    ),
+                                    ul: ({ node, ...props }) => (
+                                        <Box component="ul" sx={{ pl: 3, mb: 1 }} {...props} />
+                                    ),
+                                    li: ({ node, ...props }) => (
+                                        <li>
+                                            <Typography variant="body1" component="span" {...props} />
+                                        </li>
+                                    ),
+                                    code({ className, children, ...props }) {
+                                        const isBlock = Boolean(className);
+
+                                        return isBlock ? (
+                                            <Box
+                                                component="pre"
+                                                sx={{
+                                                    bgcolor: "grey.900",
+                                                    color: "grey.100",
+                                                    p: 2,
+                                                    borderRadius: 2,
+                                                    overflowX: "auto",
+                                                    fontFamily: "monospace",
+                                                    fontSize: "0.85em",
+                                                    mt: 1,
+                                                }}
+                                            >
+                                                <code className={className} {...props}>
+                                                    {children}
+                                                </code>
+                                            </Box>
+                                        ) : (
+                                            <Box
+                                                component="code"
+                                                sx={{
+                                                    bgcolor: "grey.200",
+                                                    px: 0.5,
+                                                    borderRadius: 0.5,
+                                                    fontFamily: "monospace",
+                                                    fontSize: "0.9em",
+                                                }}
+                                            >
+                                                {children}
+                                            </Box>
+                                        );
+                                    }
+                                }}
+                            >
+                                {msg.message}
+                            </ReactMarkdown>
+                            {/* <Typography variant="body1" sx={{ whiteSpace: 'pre-line' }}>{msg.message}</Typography> */}
+                        </Box>
                     ))}
                 </Box>
                 <Box sx={{ display: 'flex', mt: 4 }}>
