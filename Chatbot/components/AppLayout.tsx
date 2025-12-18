@@ -28,6 +28,9 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 // console.log(API_BASE_URL)
 
 const drawerWidth = 240;
+const appBarHeight = 64; // desktop
+// mobile AppBar is 56px
+
 
 interface Chat {
     id: number;
@@ -55,7 +58,7 @@ const Layout = () => {
     const [mainChats, setChats] = useState<Chat[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [chatMessages, setChatMessages] = useState<Message[]>([]);
-    const [currentChat, setCurrentChat] = useState<Chat>({} as Chat);
+    const [currentChat, setCurrentChat] = useState<Chat | null>(null);
     const [selectedIndex, setSelectedIndex] = useState<any>()
     // const [newChat, setNewChat] = useState<boolean>(false);
 
@@ -72,12 +75,16 @@ const Layout = () => {
             const res = await fetch(`${API_BASE_URL}/chats/?user_id=${userId}`)
             if (!res.ok) throw new Error("Failed to fetch user chats");
             const data = await res.json();
-            // console.log("Fetched Chats:", data)
             setChats(data);
             setChatMessages(data[0]['messages']);
-            setCurrentChat(data[0]);
-            setSelectedIndex(data[0]["id"])
-            // console.log("messages: " , data[0]['messages'])
+            if (data.length === 0) {
+                setCurrentChat({} as Chat);
+                setSelectedIndex(undefined);
+                return
+            } else {
+                setCurrentChat(data[0]);
+                setSelectedIndex(data[0]["id"])
+            }
         }
         catch (err) {
             console.error("Error fetching chats:", err);
@@ -88,27 +95,20 @@ const Layout = () => {
     }
 
     const handleNewChat = () => {
-        // console.log('Starting new chat');
-
         setChatMessages([]);
-        // const newArr = [...mainChats, { title: "New Chat" } as Chat];
-        // setChats(newArr);
-        setCurrentChat({} as Chat);
+        setCurrentChat(null);
         return
     }
 
     const handleAgentChange = (event: { target: { value: any; }; }) => {
         // Logic to handle agent change
         console.log(event.target.value);
-        // setCurrentAgent(event.target.value);
-        // selectAgent(asetCurrentAgentgent);
 
     }
     const handleSelectChat = (chat: Chat) => {
         setCurrentChat(chat);
         setChatMessages(chat['messages']);
         setSelectedIndex(chat.id)
-        // setSelectedConversation(conversation);
     }
 
     useEffect(() => {
@@ -141,10 +141,12 @@ const Layout = () => {
             {/* AppBar */}
             <AppBar
                 position="fixed"
-                sx={{ width: `calc(100% - ${drawerWidth}px)` }}
+                // sx={{ width: `calc(100% - ${drawerWidth}px)` }}
+                sx={{ width: "100%" }}
+                elevation={0}
             >
-                <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <Typography variant="h6" noWrap component="div">
+                <Toolbar sx={{ display: 'flex', justifyContent: 'space-between', backgroundColor: "white", elevation: 0 }}>
+                    <Typography variant="h6" noWrap component="div" sx={{ color: "black" }}>
                         {user ? `Welcome, ${user.display_name}` : 'No user logged in'}
                     </Typography>
                     <Typography variant="h6" noWrap component="div">
@@ -160,74 +162,101 @@ const Layout = () => {
                 sx={{
                     width: drawerWidth,
                     flexShrink: 0,
-                    [`& .MuiDrawer-paper`]: { width: drawerWidth, boxSizing: 'border-box', overflowX: 'hidden', zIndex: 15 },
+                    [`& .MuiDrawer-paper`]: { width: drawerWidth, boxSizing: 'border-box', overflowX: 'hidden', zIndex: 15, top: `${appBarHeight}px`, height: "100%" },
+                    height: `calc(100vh - ${appBarHeight}px)`,
+                    overflowY: 'hidden',
                 }}
             >
-                <Toolbar />
-                <Stack >
-                    <Box sx={{ minWidth: 120 }}>
-                        <FormControl fullWidth>
-                            <InputLabel id="demo-simple-select-label">Agent</InputLabel>
-                            <Select
-                                labelId="demo-simple-select-label"
-                                id="demo-simple-select"
-                                value={selectedAgent ? selectedAgent.id : ""}
-                                label="Agent"
-                                onChange={handleAgentChange}
+                <Stack sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    height: '90%',
+                    overflowY: 'hidden',
+                }}>
+                    <Stack sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        height: '100%',
+                        // overflowX: 'hidden',
+                        paddingTop: 2,
+                    }}>
+
+                        <Box sx={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            // height: '100%',
+
+                        }}>
+                            {/* <Toolbar /> */}
+                            <FormControl
+                                fullWidth
+                                sx={{ padding: 1 }}
                             >
-                                {
-                                    agents.map((agent: any) => (
-                                        <MenuItem value={agent.id}>{agent.agent_name}</MenuItem>
-                                    ))
-                                }
-                            </Select>
-                        </FormControl>
-                    </Box>
-                    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'start', height: '100%', paddingTop: 2, bottom: 2 }}>
-                        <Button
-                            sx={{ 'position': "fixed" }}
-                            variant="contained"
-                            onClick={() => handleNewChat()}
-                        >
-                            New Chat
-                        </Button>
+                                <InputLabel id="demo-simple-select-label">Agent</InputLabel>
+                                <Select
+                                    labelId="demo-simple-select-label"
+                                    id="demo-simple-select"
+                                    value={selectedAgent?.id ?? ''}
+                                    label="Agent"
+                                    onChange={handleAgentChange}
+                                >
+                                    {agents.map(agent => (
 
-                    </Box>
-                    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'start', paddingTop: 10 }}>
+                                        <MenuItem key={agent.id} value={agent.id}>
+                                            {agent.agent_name}
+                                        </MenuItem>
 
-                        <List>
-                            {mainChats.length > 0 ?
-                                mainChats.map((conversation, index) => (
-                                    <ListItemButton key={index}
-                                        onClick={() => handleSelectChat(conversation)}
-                                        selected={selectedIndex === conversation.id}
-                                        sx={{
-                                            '&.Mui-selected': {
-                                                backgroundColor: 'primary.main', // Example: change background color
-                                                color: 'white', // Example: change text color
-                                                '&:hover': {
-                                                    backgroundColor: 'primary.dark', // Example: change hover background for selected state
+                                    ))}
+
+                                </Select>
+                            </FormControl>
+
+                            {/* <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'start', height: '100%', paddingTop: 2, bottom: 2,overflowX: 'hidden' }}> */}
+                            <Button
+                                sx={{ margin: 2, }}
+                                variant="contained"
+                                onClick={() => handleNewChat()}
+                            >
+                                New Chat
+                            </Button>
+
+                            {/* </Box> */}
+                        </Box>
+                        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'start', overflowX: 'hidden', height: '90%' }}>
+                            <List>
+                                {mainChats.length > 0 ?
+                                    mainChats.map((conversation, index) => (
+                                        <ListItemButton key={index}
+                                            onClick={() => handleSelectChat(conversation)}
+                                            selected={selectedIndex === conversation.id}
+                                            sx={{
+                                                '&.Mui-selected': {
+                                                    backgroundColor: 'primary.main', // Example: change background color
+                                                    color: 'white', // Example: change text color
+                                                    '&:hover': {
+                                                        backgroundColor: 'primary.dark', // Example: change hover background for selected state
+                                                    },
                                                 },
-                                            },
-                                        }}
-                                    >
-                                        <ListItemText
-                                            sx={{ overflow: 'hidden', maxWidth: '200px', textOverflow: 'ellipsis' }}
-                                            primary={
-                                                <Typography noWrap sx={{ fontSize: 12 }}>
-                                                    {` ${conversation.id}: ${conversation.title}` || `Conversation ${index + 1}`}
-                                                </Typography>
-                                            }
-                                        />
-                                    </ListItemButton>
-                                ))
-                                :
-                                <ListItemText primary="No conversations available" />
-                            }
-                            {/* <ListItemText primary="No conversations available" /> */}
-                            {/* Add more sidebar links here */}
-                        </List>
-                    </Box>
+                                            }}
+                                        >
+                                            <ListItemText
+                                                sx={{ overflow: 'hidden', maxWidth: '200px', textOverflow: 'ellipsis' }}
+                                                primary={
+                                                    <Typography noWrap sx={{ fontSize: 12 }}>
+                                                        {` ${conversation.id}: ${conversation.title}` || `Conversation ${index + 1}`}
+                                                    </Typography>
+                                                }
+                                            />
+                                        </ListItemButton>
+                                    ))
+                                    :
+                                    <ListItemText primary="No conversations available" />
+                                }
+                                {/* <ListItemText primary="No conversations available" /> */}
+                                {/* Add more sidebar links here */}
+                            </List>
+                        </Box>
+                    </Stack >
                 </Stack>
             </Drawer>
 

@@ -2,19 +2,19 @@ import { useEffect, useState } from "react";
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 interface Agents {
-    agent_name: string | null;
-    description: string | null;
-    created_date: Date | null;
-    model: string | null;
-    system_message: string | null;
-    id: number | null;
-    updated_date: Date | null;
-    model_id: number | null;
+    agent_name: string;
+    description: string;
+    created_date: Date;
+    model: string;
+    system_message: string;
+    id: number;
+    updated_date: Date;
+    model_id: number;
 }
 
 export function useAgents() {
     const [agents, setAgents] = useState<Agents[]>([]);
-    const [selectedAgent, setCurrentAgent] = useState<Agents | null>(null);
+    const [selectedAgent, setCurrentAgent] = useState<Agents>({} as Agents);
 
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<any>(null);
@@ -34,7 +34,7 @@ export function useAgents() {
                     if(data.length>0) {
                         setCurrentAgent(data[0])
                     } else {
-                        setCurrentAgent(null)
+                        setCurrentAgent({} as Agents)
                     }
                 }
             } catch (err) {

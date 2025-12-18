@@ -27,31 +27,24 @@ interface Message {
     message: string;
 }
 
-// interface Chat {
-//     id: number;
-//     user_id: number;
-//     agent_id: number;
-//     title: string;
-//     creaded_date: Date;
-// }
+interface Chat {
+    id: number;
+    user_id: number;
+    agent_id: number;
+    title: string;
+    creaded_date: Date;
+    messages: Message[];
+}
 
 function ChatScreen() {
 
-    // const [conversationsOld, setConversationsOld] = useState([]);
     const [input, setInput] = useState('');
-    // const [loading, setLoading] = useState(false);
     const [messages, setMessages] = useState<Message[]>([]);
     const scrollRef = useRef<HTMLDivElement>(null);
     const { selectedAgent, chatMessages, currentChat, getChats, setCurrentChat } = useOutletContext<any>();
-    // const { selectedAgent } = useOutletContext<any>();
-    // const [mainChats, setChats] = useState<Chat>();
     const { user } = useUserContext();
     const [loading, setLoading] = useState<boolean>(false);
-    const curChat = useRef(currentChat)
-    // const [error, setError] = useState<any>(null);
-    // console.log("Chat Messages: ",chatMessages)
-    // console.log("SelectedChat: ", curChat)
-    // console.log("Sleected Messages: ", chatMessages)
+    // const curChat = useRef(currentChat)
 
     useEffect(() => {
         if (scrollRef.current) {
@@ -63,14 +56,6 @@ function ChatScreen() {
 
     useEffect(() => {
         setMessages(chatMessages);
-    }, [selectedAgent]);
-
-    useEffect(() => {
-        // console.log("CurrentChat: ", currentChat)
-        // console.log("Messages: ", chatMessages)
-
-        setMessages(chatMessages);
-
     }, [currentChat]);
 
 
@@ -117,19 +102,21 @@ function ChatScreen() {
             if (!event.shiftKey) {
                 if (input.trim() !== '' && event.key === 'Enter') {
                     event.preventDefault();
-                    if (messages.length === 0 && Object.keys(currentChat).length === 0) {
-                        // console.log("Starting new chat flow");
-                        const newestChat = await newChat(input.trim());
-                        // console.log("Newest Chat from API:", newestChat);
-                        await getChats(user?.id)
-                        // await getMessages(curChat.current.id)
-                        curChat.current = newestChat
-                        await setCurrentChat(newestChat)
-                        // await handleChat(selectedAgent.id, input.trim(), "user");
 
-                    } else {
-                        await handleChat(selectedAgent.id, input.trim(), "user");
-                    }
+                    await handleChat(selectedAgent.id, input.trim(), "user");
+                    // if (messages.length === 0 && Object.keys(currentChat).length === 0) {
+                    //     // console.log("Starting new chat flow");
+                    //     const newestChat = await newChat(input.trim());
+                    //     // console.log("Newest Chat from API:", newestChat);
+                    //     await getChats(user?.id)
+                    //     // await getMessages(curChat.current.id)
+                    //     curChat.current = newestChat
+                    //     await setCurrentChat(newestChat)
+                    //     // await handleChat(selectedAgent.id, input.trim(), "user");
+
+                    // } else {
+                    //     await handleChat(selectedAgent.id, input.trim(), "user");
+                    // }
                 }
                 // Prevent default form submission if Enter is pressed without Shift
                 // // You can add your submission logic here if needed
@@ -139,11 +126,11 @@ function ChatScreen() {
         }
     };
 
-    const postMessage = async (message: string, role: string) => {
+    const postMessage = async (message: string, role: string, chat: Chat) => {
         // console.log(message, curChat, role)
-        console.log("cur chat:", curChat)
+        // console.log("cur chat:", curChat)
         try {
-            console.log("Current Chat: ", curChat.current)
+            // console.log("Current Chat: ", curChat.current)
             const llmCallRes = await fetch(`${API_BASE_URL}/messages/agent/`, {
                 method: 'POST',
                 headers: {
@@ -151,8 +138,8 @@ function ChatScreen() {
                     'Accept': 'application/json'
                 },
                 body: JSON.stringify({
-                    agent_id: curChat.current.agent_id,
-                    chat_id: curChat.current.id,
+                    agent_id: chat.agent_id,
+                    chat_id: chat.id,
                     message: message,
                     role: role,
                     user_id: user?.id,
@@ -161,54 +148,48 @@ function ChatScreen() {
             if (!llmCallRes.ok) throw new Error("Failed to get LLM response");
             const llmData = await llmCallRes.json();
             // console.log("LLM Response:", llmData);
-            setMessages(prevMessages => [...prevMessages, { message: llmData.message, role: llmData.role, agent_id: curChat.current.agent_id, chat_id: curChat.current.id }]);
+            setMessages(prevMessages => [...prevMessages, { message: llmData.message, role: llmData.role, agent_id: chat.agent_id, chat_id: chat.id }]);
         } catch (err) {
             console.error("Error posting chat message:", err);
         }
     }
 
     const handleChat = async (selectedAgent: any, input: string, role: string) => {
+        // console.log("RUNNIGN HANDLE CHAT")
 
-        if (messages.length === 0 && Object.keys(currentChat).length === 0) {
-            console.log("Starting new chat flow");
+        if (messages.length === 0 && currentChat === null) {
             setLoading(true);
-            const newestChat = await newChat(input.trim());
-            // console.log("Newest Chat from API:", newestChat);
-            setCurrentChat(newestChat)
-            curChat.current = newestChat
-            // console.log("Inside handle chat: ", curChat.current)
-            setMessages([...messages, { message: input.trim(), role: role, agent_id: selectedAgent.id, chat_id: curChat.current.id }]);
-
+            setMessages( prev => [...prev, { message: input.trim(), role: role, agent_id: selectedAgent.id, chat_id: currentChat?.id}]);
             setInput("")
+    
+            const newestChat = await newChat(input.trim());
+
             // API CALL TO STORE CHAT MESSAGE
-            await postMessage(input.trim(), role)
+            await postMessage(input.trim(), role, newestChat)
             await getChats(user?.id)
-            // console.log("Post Chat Response:", postMessageData);
+            setCurrentChat(newestChat);
             setLoading(false)
 
         } else {
 
             setLoading(true);
-            setMessages([...messages, { message: input.trim(), role: role, agent_id: selectedAgent.id, chat_id: curChat.current.id }]);
-
+            setMessages([...messages, { message: input.trim(), role: role, agent_id: selectedAgent.id, chat_id: currentChat.id }]);
             setInput("")
             // API CALL TO STORE CHAT MESSAGE
-            await postMessage(input.trim(), role)
+            await postMessage(input.trim(), role, currentChat)
             // console.log("Post Chat Response:", postMessageData);
             setLoading(false)
         }
-
-
     }
 
 
 
     return (
         // <Box sx={{ flexGrow: 1, p: 3, boxShadow: 3, borderRadius: 3, overflowY: 'hidden', height: '100vh', backgroundColor: "gray" }}>
-        <Box sx={{ width: '100%', borderRadius: 3, boxShadow: 4 }}>
+        <Box sx={{ width: '100%', borderRadius: 3 }}>
             {/* <SideBar conversations={conversations} /> */}
 
-            <Box component="main" sx={{ flexGrow: 1, p: 3, borderRadius: 3, overflowY: 'hidden' }}>
+            <Box component="main" sx={{ flexGrow: 1, p: 3, borderRadius: 3, overflowY: 'hidden', backgroundColor: "#fafafa" }}>
                 <Box sx={{
                     display: 'flex',
                     flexDirection: 'column',
@@ -221,7 +202,7 @@ function ChatScreen() {
                 }}
                     ref={scrollRef}
                 >
-                    {/* {selectedAgent ? selectedAgent.agent_name : "Start a conversation"!} */}
+                    {currentChat ? "" : "Start a conversation"}
                     {messages.map((msg, index) => (
                         <Box
                             key={index}
@@ -233,6 +214,7 @@ function ChatScreen() {
                                 borderRadius: 2,
                             }}
                         >
+                            {/* {currentChat ? "" : "Start a conversation"} */}
                             <ReactMarkdown
                                 remarkPlugins={[remarkGfm]}
                                 components={{
