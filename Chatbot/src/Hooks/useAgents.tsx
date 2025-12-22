@@ -24,6 +24,7 @@ export function useAgents() {
 
         async function fetchAgents() {
             try {
+                // console.log("Running Fetch Agents")
                 setLoading(true);
                 const res = await fetch(`${API_BASE_URL}/agent/`);
                 if (!res.ok) throw new Error("Failed to fetch");
@@ -44,9 +45,34 @@ export function useAgents() {
             }
         }
 
+        
         fetchAgents();
         return () => { ignore = true; }; // prevent state updates on unmount
     }, []);
-
-    return { agents, selectedAgent, loading, error };
+    
+    const fetchSingleAgent = async (id: number) => {
+        try {
+                console.log("Running Fetch Agents")
+                setLoading(true);
+                const res = await fetch(`${API_BASE_URL}/agent?id=${id}`);
+                if (!res.ok) throw new Error("Failed to fetch");
+                const data = await res.json();
+                console.log("single agent data: ", data)
+                if (data) {
+                    // setAgents(data)
+                    // console.log("Fetched Agents:", data[0]);
+                    setCurrentAgent(data)
+                    
+                    // if(data.length>0) {
+                    // } else {
+                    //     setCurrentAgent({} as Agents)
+                    // }
+                }
+            } catch (err) {
+                setError(err);
+            } finally {
+                setLoading(false);
+            }
+    }
+    return { agents, selectedAgent, loading, error, fetchSingleAgent };
 }

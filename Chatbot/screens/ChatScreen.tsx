@@ -45,10 +45,11 @@ function ChatScreen() {
     const { user } = useUserContext();
     const [loading, setLoading] = useState<boolean>(false);
     // const curChat = useRef(currentChat)
+    // console.log(currentChat)
 
     useEffect(() => {
         if (scrollRef.current) {
-            // scrollRef.current.scrollIntoView({ behavior: "smooth" });
+            scrollRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
             scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
         }
     }, [messages]);
@@ -159,14 +160,15 @@ function ChatScreen() {
 
         if (messages.length === 0 && currentChat === null) {
             setLoading(true);
-            setMessages( prev => [...prev, { message: input.trim(), role: role, agent_id: selectedAgent.id, chat_id: currentChat?.id}]);
+            setMessages(prev => [...prev, { message: input.trim(), role: role, agent_id: selectedAgent.id, chat_id: currentChat?.id }]);
             setInput("")
-    
+
             const newestChat = await newChat(input.trim());
 
             // API CALL TO STORE CHAT MESSAGE
             await postMessage(input.trim(), role, newestChat)
-            await getChats(user?.id)
+            // console.log("GEtting chats on new chat created.", selectedAgent)
+            await getChats(user?.id, selectedAgent)
             setCurrentChat(newestChat);
             setLoading(false)
 
@@ -186,19 +188,34 @@ function ChatScreen() {
 
     return (
         // <Box sx={{ flexGrow: 1, p: 3, boxShadow: 3, borderRadius: 3, overflowY: 'hidden', height: '100vh', backgroundColor: "gray" }}>
-        <Box sx={{ width: '100%', borderRadius: 3 }}>
+        <Box sx={{ height: "100%", width: '100%' }}>
             {/* <SideBar conversations={conversations} /> */}
 
-            <Box component="main" sx={{ flexGrow: 1, p: 3, borderRadius: 3, overflowY: 'hidden', backgroundColor: "#fafafa" }}>
+            <Box component="main" sx={{
+                display: "flex",
+                flexDirection: "column",
+                flexGrow: 1,
+                p: 3,
+                borderRadius: 3,
+                // overflowY: 'auto',
+                backgroundColor: "#fafafa",
+                // backgroundColor: "blue",
+
+                height: "100%",
+                width: '100%',
+                // position: "relative"
+            }}>
                 <Box sx={{
+                    flex: 1,
                     display: 'flex',
                     flexDirection: 'column',
                     gap: 2,
                     mt: 2,
-                    maxHeight: '60vh',
-                    minHeight: '60vh',
-                    overflowY: 'auto',
+                    // maxHeight: '100%',
+                    // minHeight: '60vh',
+                    // overflowY: 'auto',
                     padding: 2,
+                    // backgroundColor: "yellow"
                 }}
                     ref={scrollRef}
                 >
@@ -207,11 +224,17 @@ function ChatScreen() {
                         <Box
                             key={index}
                             sx={{
+                                // display: 'flex',
+                                // alignItems: 'flex-end',
                                 p: 1.5,
+                                mb: 3,
                                 maxWidth: '75%',
                                 alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
                                 bgcolor: msg.role === 'user' ? 'lightgray' : '',
                                 borderRadius: 2,
+                                // height: "100%"
+                                overflow: "auto",
+                                fontFamily: "cursive"
                             }}
                         >
                             {/* {currentChat ? "" : "Start a conversation"} */}
@@ -219,23 +242,23 @@ function ChatScreen() {
                                 remarkPlugins={[remarkGfm]}
                                 components={{
                                     h1: ({ node, ...props }) => (
-                                        <Typography variant="h5" fontWeight="bold" gutterBottom {...props} />
+                                        <Typography variant="h5" fontWeight="bold" sx={{fontFamily: "sans-serif" }} gutterBottom {...props} />
                                     ),
                                     h2: ({ node, ...props }) => (
-                                        <Typography variant="h6" fontWeight="bold" gutterBottom {...props} />
+                                        <Typography variant="h6" fontWeight="bold" sx={{fontFamily: "sans-serif" }} gutterBottom {...props} />
                                     ),
                                     p: ({ node, ...props }) => (
-                                        <Typography variant="body1" sx={{ mb: 1 }} {...props} />
+                                        <Typography variant="body1" sx={{ mb: 1, fontFamily: "sans-serif" }} {...props} />
                                     ),
                                     strong: ({ node, ...props }) => (
                                         <Typography component="span" fontWeight="bold" {...props} />
                                     ),
                                     ul: ({ node, ...props }) => (
-                                        <Box component="ul" sx={{ pl: 3, mb: 1 }} {...props} />
+                                        <Box component="ul" sx={{ pl: 3, mb: 1, fontFamily: "cursive" }} {...props} />
                                     ),
                                     li: ({ node, ...props }) => (
                                         <li>
-                                            <Typography variant="body1" component="span" {...props} />
+                                            <Typography variant="body1" component="span" sx={{fontFamily: "sans-serif" }} {...props} />
                                         </li>
                                     ),
                                     code({ className, children, ...props }) {
@@ -250,7 +273,7 @@ function ChatScreen() {
                                                     p: 2,
                                                     borderRadius: 2,
                                                     overflowX: "auto",
-                                                    fontFamily: "monospace",
+                                                    fontFamily: "cursive",
                                                     fontSize: "0.85em",
                                                     mt: 1,
                                                 }}
@@ -266,7 +289,7 @@ function ChatScreen() {
                                                     bgcolor: "grey.200",
                                                     px: 0.5,
                                                     borderRadius: 0.5,
-                                                    fontFamily: "monospace",
+                                                    fontFamily: "cursive",
                                                     fontSize: "0.9em",
                                                 }}
                                             >
@@ -276,35 +299,67 @@ function ChatScreen() {
                                     }
                                 }}
                             >
-                                {msg.message}
+                                {/* <Typography variant="body1" component="h2"> */}
+                                    {msg.message}
+                                {/* </Typography> */}
                             </ReactMarkdown>
                             {/* <Typography variant="body1" sx={{ whiteSpace: 'pre-line' }}>{msg.message}</Typography> */}
                         </Box>
                     ))}
                 </Box>
-                <Box sx={{ display: 'flex', mt: 4 }}>
-                    <TextField
-                        multiline={true}
-                        fullWidth
-                        variant="outlined"
-                        placeholder="Type your message..."
-                        value={input}
-                        onChange={(e) => setInput(e.target.value)}
-                        // onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                        onKeyDown={handleKeyDown}
-                    />
-                    <IconButton color="primary" onClick={() => handleChat(selectedAgent.id, input, "user")} sx={{ ml: 1 }} disabled={input.trim() == "" || input.trim() === ''}>
-                        {
-                            loading
-                                ?
-                                <CircularProgress size={24} />
-                                :
-                                <SendIcon />
-                        }
-                    </IconButton>
+                <Box sx={{
+                    display: 'flex',
+                    position: "fixed",
+                    bottom: 0,
+                    width: "inherit",
+                    // m: 4,
+                    // p:4,
+                    // alignItems: 'flex-end',
+                    // position: "relative",
+                    backgroundColor: "#fafafa"
+                }}>
+                    <Box sx={{
+                        display: 'flex',
+                        // position: "fixed",
+                        // bottom: 0,
+                        width: "50%",
+                        ml: 4,
+                        mr: 4,
+                        mb: 4,
+
+                        // alignItems: 'flex-end',
+                        // position: "relative",
+                        // backgroundColor: "white"
+                    }}>
+
+                        <TextField
+                            multiline={true}
+                            fullWidth
+                            variant="outlined"
+                            placeholder="Type your message..."
+                            value={input}
+                            onChange={(e) => setInput(e.target.value)}
+                            // onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+                            onKeyDown={handleKeyDown}
+                        />
+                        <IconButton
+
+                            color="primary" onClick={() => handleChat(selectedAgent.id, input, "user")} sx={{ ml: 1 }} disabled={input.trim() == "" || input.trim() === ''}>
+                            {
+                                loading
+                                    ?
+                                    <CircularProgress size={24} />
+                                    :
+                                    <SendIcon />
+                            }
+                        </IconButton>
+                    </Box>
+
+
                 </Box>
             </Box>
         </Box>
+
 
     )
 }

@@ -23,6 +23,7 @@ import Select from '@mui/material/Select';
 // import { AuthContext } from '../src/Context/AuthContext';
 import { useUserContext } from '../src/Context/UserContext';
 import { useAgents } from '../src/Hooks/useAgents';
+// import { useChats } from '../src/Hooks/useChats';
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 // console.log(API_BASE_URL)
@@ -33,12 +34,14 @@ const appBarHeight = 64; // desktop
 
 
 interface Chat {
-    id: number;
-    user_id: number;
-    agent_id: number;
-    title: string;
-    creaded_date: Date;
-    messages: Message[];
+    id: number
+    user_id: number
+    agent_id: number
+    title: string
+    created_date: Date
+    summary: string
+    message_start_index: number
+    messages: Array<Message>
 }
 
 interface Message {
@@ -54,34 +57,56 @@ interface Message {
 
 const Layout = () => {
     const { user, logout, isLoggedIn } = useUserContext();
-    const { agents, selectedAgent, loading, error } = useAgents();
+    const { agents, selectedAgent, loading, error, fetchSingleAgent } = useAgents();
+    // const { chats, messages, chatsLoading, chatsError } = useChats(user!.id, selectedAgent?.id);
     const [mainChats, setChats] = useState<Chat[]>([]);
+    // const mainChats = chats
+    // const isLoading = chatsLoading
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [chatMessages, setChatMessages] = useState<Message[]>([]);
     const [currentChat, setCurrentChat] = useState<Chat | null>(null);
     const [selectedIndex, setSelectedIndex] = useState<any>()
+    // const [curAgent, setCurAgent] = useState(selectedAgent)
     // const [newChat, setNewChat] = useState<boolean>(false);
-
+    // console.log("Main Selected Agent: ", selectedAgent)
+    // console.log(chatsLoading, chatsError, chats, messages)
 
 
     if (!user && isLoggedIn !== true) {
         throw new Error('AuthContext.Provider is missing in the component tree');
     }
 
-    const getChats = async (userId: number) => {
+    // useEffect(() => {
+    //     if (!chats.length) {
+    //         setCurrentChat(null);
+    //         setChatMessages([]);
+    //         setSelectedIndex(undefined);
+    //         return;
+    //     }
+
+    //     setCurrentChat(chats[0]);
+    //     setChatMessages(chats[0].messages);
+    //     setSelectedIndex(chats[0].id);
+    // }, [chats]);
+
+    const getChats = async (userId: number, agent_id: number) => {
         // Fetch chats logic here
         try {
 
-            const res = await fetch(`${API_BASE_URL}/chats/?user_id=${userId}`)
+            const res = await fetch(`${API_BASE_URL}/chats/?user_id=${userId}&agent_id=${agent_id}`)
             if (!res.ok) throw new Error("Failed to fetch user chats");
             const data = await res.json();
+            // console.log("new_chats data: ", data)
             setChats(data);
-            setChatMessages(data[0]['messages']);
             if (data.length === 0) {
+                // console.log("length of data is 0")
                 setCurrentChat({} as Chat);
                 setSelectedIndex(undefined);
+                setChatMessages([]);
                 return
             } else {
+                setChatMessages(data[0]['messages']);
+                // console.log("length of data is ELSE")
                 setCurrentChat(data[0]);
                 setSelectedIndex(data[0]["id"])
             }
@@ -94,15 +119,43 @@ const Layout = () => {
 
     }
 
+    // const processChats = () => {
+    //     try {
+
+    //         if (chats.length === 0) {
+    //             console.log("length of data is 0")
+    //             setCurrentChat({} as Chat);
+    //             setSelectedIndex(undefined);
+    //             return
+    //         } else {
+    //             console.log("length of data is ELSE")
+    //             // setCurrentChat(chats[0]);
+    //             setSelectedIndex(chats[0]["id"])
+    //         }
+    //     }
+    //     catch (err) {
+    //         console.error("Error fetching chats:", err);
+    //     } finally {
+    //         setIsLoading(false);
+    //     }
+    // }
+
     const handleNewChat = () => {
         setChatMessages([]);
         setCurrentChat(null);
         return
     }
 
+    // useEffect(() => {
+    //     handleAgentChange
+
+    // }, [selectedAgent])
+
     const handleAgentChange = (event: { target: { value: any; }; }) => {
         // Logic to handle agent change
-        console.log(event.target.value);
+        // console.log("Selected Agent: ", event.target.value);
+        fetchSingleAgent(event.target.value)
+        // setCurAgent(event.target.value)/
 
     }
     const handleSelectChat = (chat: Chat) => {
@@ -111,17 +164,23 @@ const Layout = () => {
         setSelectedIndex(chat.id)
     }
 
+    // useEffect(() => {
+    //     processChats()
+    // }, [])
     useEffect(() => {
+        if (!user || !selectedAgent?.id) return;
+        // console.log("Running Selected Agent")
         setIsLoading(true);
         const chats = async () => {
 
             if (user) {
-                getChats(user.id);
+                // console.log("Use Effect selected agent: ", selectedAgent)
+                getChats(user.id, selectedAgent.id);
             }
         }
         chats()
 
-    }, [selectedAgent]);
+    }, [selectedAgent?.id]);
 
 
     if (loading) {
@@ -135,7 +194,12 @@ const Layout = () => {
     }
 
     return (
-        <Box sx={{ display: 'flex' }}>
+        <Box 
+        sx={{ 
+            display: 'flex',
+            // position: "relative"
+        }}
+        >
             <CssBaseline />
 
             {/* AppBar */}
@@ -263,10 +327,12 @@ const Layout = () => {
             {/* Main Content */}
             <Box
                 component="main"
-                sx={{ flexGrow: 1, bgcolor: 'background.default', p: 3 }}
+                sx={{ flexGrow: 1, bgcolor: 'background.default', p: 0 }}
             >
-                <Toolbar /> {/* for spacing below AppBar */}
+                {/*for spacing below AppBar  */}
+                {/* <Toolbar />  */}
                 <Outlet context={{ selectedAgent, chatMessages, currentChat, getChats, setCurrentChat }} />
+                {/* <Outlet context={{ selectedAgent, chatMessages, currentChat,  setCurrentChat }} /> */}
                 {/* <Outlet /> */}
             </Box>
         </Box>
