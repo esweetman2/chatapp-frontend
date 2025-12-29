@@ -57,16 +57,9 @@ export function useAgents() {
                 const res = await fetch(`${API_BASE_URL}/agent?id=${id}`);
                 if (!res.ok) throw new Error("Failed to fetch");
                 const data = await res.json();
-                console.log("single agent data: ", data)
+                // console.log("single agent data: ", data)
                 if (data) {
-                    // setAgents(data)
-                    // console.log("Fetched Agents:", data[0]);
                     setCurrentAgent(data)
-                    
-                    // if(data.length>0) {
-                    // } else {
-                    //     setCurrentAgent({} as Agents)
-                    // }
                 }
             } catch (err) {
                 setError(err);

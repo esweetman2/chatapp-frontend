@@ -2,7 +2,8 @@ import {
   createBrowserRouter,
   RouterProvider
 } from "react-router";
-import ChatScreen from '../screens/ChatScreen';
+// import ChatScreen from '../screens/ChatScreen';
+import ChatScreenStream from '../screens/ChatScreenStream'
 import LoginScreen from '../screens/LoginScreen';
 // import Layout from "../components/Layout";
 import AppLayout from "../components/AppLayout";
@@ -31,8 +32,12 @@ const router = createBrowserRouter([
         children: [
           {
             path: "chat",
-            element: <ChatScreen />,
+            element: <ChatScreenStream />,
           },
+          // {
+          //   path: "chatstream",
+          //   element: <ChatScreenStream />,
+          // },
         ],
       },
     ],
