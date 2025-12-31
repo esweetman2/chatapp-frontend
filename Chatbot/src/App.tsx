@@ -7,6 +7,7 @@ import ChatScreenStream from '../screens/ChatScreenStream'
 import LoginScreen from '../screens/LoginScreen';
 // import Layout from "../components/Layout";
 import AppLayout from "../components/AppLayout";
+import AgentAdminScreen from "../screens/AgentAdminScreen"
 import './App.css'
 // import { IconButton, Paper, TextField, Typography } from '@mui/material';
 // import { MyContext } from './context';
@@ -34,12 +35,12 @@ const router = createBrowserRouter([
             path: "chat",
             element: <ChatScreenStream />,
           },
-          // {
-          //   path: "chatstream",
-          //   element: <ChatScreenStream />,
-          // },
         ],
       },
+      {
+        path: "/agent/admin",
+        element: <AgentAdminScreen />
+      }
     ],
   },
 ]);

@@ -26,7 +26,7 @@ import { useAgents } from '../src/Hooks/useAgents';
 import ChatDrawerSideBar from '../components/ChatDrawerSideBar'
 // import { useChats } from '../src/Hooks/useChats';
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
+import { useNavigate } from 'react-router';
 // console.log(API_BASE_URL)
 
 // const drawerWidth = 240;
@@ -64,6 +64,7 @@ const Layout = () => {
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [currentChatId, setCurrentChatId] = useState<number | null>(null);
     const [selectedIndex, setSelectedIndex] = useState<any>()
+    const navigate = useNavigate();
 
     const childCurrentChat: Chat | null = mainChats.find(chat => chat.id == currentChatId) ?? null
 
@@ -197,6 +198,9 @@ const Layout = () => {
                 <Toolbar sx={{ display: 'flex', justifyContent: 'space-between', backgroundColor: "white", elevation: 0 }}>
                     <Typography variant="h6" noWrap component="div" sx={{ color: "black" }}>
                         {user ? `Welcome, ${user.display_name}` : 'No user logged in'}
+                    </Typography>
+                    <Typography variant="h6" noWrap component="div">
+                        <Button onClick={() => navigate("/agent/admin")} sx={{ color: "black" }} >Admin</Button>
                     </Typography>
                     <Typography variant="h6" noWrap component="div">
                         <Button onClick={logout} sx={{ color: "black" }} >Log Out</Button>
