@@ -24,6 +24,7 @@ import {
 import { useUserContext } from '../src/Context/UserContext';
 import { useAgents } from '../src/Hooks/useAgents';
 import ChatDrawerSideBar from '../components/ChatDrawerSideBar'
+import PlaidLogin from '../screens/PlaidLogin';
 // import { useChats } from '../src/Hooks/useChats';
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 import { useNavigate } from 'react-router';
@@ -205,6 +206,10 @@ const Layout = () => {
                     <Typography variant="h6" noWrap component="div">
                         <Button onClick={logout} sx={{ color: "black" }} >Log Out</Button>
                     </Typography>
+                    <Typography variant="h6" noWrap component="div">
+                        <Button onClick={() => navigate("/finances")} sx={{ color: "black" }} >Finances</Button>
+                    </Typography>
+                    <PlaidLogin />
 
                 </Toolbar>
             </AppBar>

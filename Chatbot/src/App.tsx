@@ -8,6 +8,7 @@ import LoginScreen from '../screens/LoginScreen';
 // import Layout from "../components/Layout";
 import AppLayout from "../components/AppLayout";
 import AgentAdminScreen from "../screens/AgentAdminScreen"
+import PlaidScreen from "../screens/PlaidScreen"
 import './App.css'
 // import { IconButton, Paper, TextField, Typography } from '@mui/material';
 // import { MyContext } from './context';
@@ -40,6 +41,10 @@ const router = createBrowserRouter([
       {
         path: "/agent/admin",
         element: <AgentAdminScreen />
+      },
+      {
+        path: "/finances",
+        element: <PlaidScreen />
       }
     ],
   },

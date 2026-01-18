@@ -50,7 +50,7 @@ function ChatScreenStream() {
             scrollRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
             scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
         }
-    }, [childCurrentChat?.messages]);
+    }, [childCurrentChat?.messages.length]);
 
 
     const messageInterface = (
