@@ -67,8 +67,8 @@ export default function AgentAdminScreen() {
                     created_date: agent.created_date,
                     id: agent.id,
                     model: agent.model,
-                    // model_id: agent.model_id,
-                    model_id: 4,
+                    model_id: agent.model_id,
+                    // model_id: 4,
 
                     system_message: agent.system_message,
                     use_memory: agent.use_memory,
